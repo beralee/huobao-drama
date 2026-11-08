@@ -226,6 +226,17 @@
 
           <!-- 右侧主区域 -->
           <div class="settings-scroll skills-main">
+            <section class="card workflow-card" style="padding:18px;margin-bottom:18px">
+              <label class="field"><span class="field-label">创作方案</span>
+                <select aria-label="创作方案" class="input" :value="workflowProfile" :disabled="workflowSaving" @change="changeWorkflow($event.target.value)">
+                  <option value="drama-enhanced">Drama Skills 增强 · 推荐</option>
+                  <option value="builtin">火宝内置 · 对照</option>
+                </select>
+              </label>
+              <p class="dim">{{ workflowProfile === 'drama-enhanced' ? '按剧情和对白设计镜长，锁定人物、站位与道具连续性；沿用现有保存与生成接口。' : '使用原有 System Prompt 与 Skills，便于对照创作结果。' }}</p>
+              <p class="dim">切换对之后启动的任务生效，不会重写已有剧本、分镜或素材。</p>
+              <a href="https://github.com/zenstory-ai/drama-skills/tree/3d813c30871b4db5f2387d83bdc3a49db8ce7b2b" target="_blank" rel="noopener noreferrer">Drama Skills 0.11.2 · 来源与许可</a>
+            </section>
             <div class="settings-head skills-head">
               <span class="agent-type-badge skills-head-badge">{{ selectedAgentIcon }}</span>
               <div class="skills-head-copy">
@@ -256,12 +267,12 @@
               </div>
               <div class="agent-card-body">
                 <label class="field">
-                  <span class="field-label">System Prompt <span class="dim">({{ t('settings.agents.promptHint', { file: promptFileName }) }})</span>
+                  <span class="field-label">{{ workflowProfile === 'drama-enhanced' ? '当前生效指令（在 Skills 中编辑创作规则）' : 'System Prompt' }} <span v-if="workflowProfile === 'builtin'" class="dim">({{ t('settings.agents.promptHint', { file: promptFileName }) }})</span>
                     <span v-if="agentPromptFallback" class="tag agent-fallback-tag">{{ t('settings.agents.langFallback') }}</span>
                   </span>
-                  <textarea v-model="agentForm.system_prompt" class="textarea agent-prompt-input" rows="16" :placeholder="t('settings.agents.promptPlaceholder')" />
+                  <textarea v-model="agentForm.system_prompt" :readonly="workflowProfile === 'drama-enhanced'" class="textarea agent-prompt-input" rows="16" :placeholder="t('settings.agents.promptPlaceholder')" />
                 </label>
-                <div class="agent-card-foot">
+                <div v-if="workflowProfile === 'builtin'" class="agent-card-foot">
                   <button class="btn btn-ghost btn-sm" @click="resetAgentPrompt(selectedAgent)">{{ t('settings.agents.reset') }}</button>
                   <span v-if="agentSaved === selectedAgent" class="tag tag-success" style="margin-left:8px">
                     <Check :size="10" /> {{ t('common.saved') }}
@@ -528,7 +539,7 @@ import { startTour, autoTour } from '~/composables/useTour'
 const { t, locale } = useI18n()
 
 const showBrandImage = ref(true)
-const tab = ref('ai')
+const tab = ref(useRoute().query.tab === 'agents' ? 'agents' : 'ai')
 const baseTabs = computed(() => [
   { id: 'ai', label: t('settings.tabs.ai'), icon: Cpu },
   { id: 'general', label: t('settings.tabs.general'), icon: Languages },
@@ -721,6 +732,25 @@ const agentPane = ref('prompt')   // 右侧子 tab：prompt | skills
 const agentSaving = ref(false)
 const agentSaved = ref(null)
 const agentForm = reactive({ system_prompt: '' })
+const workflowProfile = ref('drama-enhanced')
+const workflowSaving = ref(false)
+
+async function loadWorkflow() {
+  try { workflowProfile.value = (await settingsAPI.workflowProfile()).profile }
+  catch (e) { toastError(e) }
+  await loadAgentPrompt(selectedAgent.value)
+}
+async function changeWorkflow(profile) {
+  workflowSaving.value = true
+  try {
+    const saved = await settingsAPI.setWorkflowProfile(profile)
+    workflowProfile.value = saved.profile
+    editingSkill.value = null
+    await loadAgentPrompt(selectedAgent.value)
+    toast.success('创作方案已切换，新任务开始生效')
+  } catch (e) { toastError(e) }
+  finally { workflowSaving.value = false }
+}
 
 const agentDefs = computed(() => [
   { type: 'script_rewriter', label: t('settings.agents.scriptRewriter'), icon: '📝' },
@@ -741,6 +771,15 @@ async function loadAgents() {
 
 async function loadAgentPrompt(type) {
   try {
+    if (workflowProfile.value === 'drama-enhanced') {
+      const result = await settingsAPI.agentInstructions(type, workflowProfile.value)
+      if (selectedAgent.value === type) {
+        agentForm.system_prompt = result.instructions
+        agentPromptFallback.value = false
+      }
+      agentSaved.value = null
+      return
+    }
     const cfg = await promptAPI.get(type, editLang.value)
     if (selectedAgent.value === type) {
       agentForm.system_prompt = cfg.system_prompt || ''
@@ -834,7 +873,7 @@ async function loadContentLanguage() {
 onMounted(loadContentLanguage)
 
 // agent type 用下划线（script_rewriter），skill 目录按 Mastra 规范用连字符（script-rewriter）
-const skillDirOf = (type) => type.replace(/_/g, '-')
+const skillDirOf = (type) => `${workflowProfile.value === 'drama-enhanced' ? 'drama-enhanced/' : ''}${type.replace(/_/g, '-')}`
 const skillBelongsTo = (skillId, type) => {
   const dir = skillDirOf(type)
   return skillId === dir || skillId.startsWith(dir + '/')
@@ -918,6 +957,7 @@ async function saveSkill(id) {
   try {
     await skillsAPI.update(id, skillContent.value, editLang.value)
     await loadAllSkills()
+    await loadAgentPrompt(selectedAgent.value)
     skillContentFallback.value = false
     skillSaved.value = id
     toast.success(t('common.saved'))
@@ -1008,7 +1048,7 @@ async function saveStyle() {
   } catch (e) { toastError(e) }
 }
 
-onMounted(() => { loadCfgs(); loadAgents(); loadAllSkills(); loadAgentPrompt(selectedAgent.value); loadStylePresets() })
+onMounted(() => { loadCfgs(); loadAgents(); loadAllSkills(); loadWorkflow(); loadStylePresets() })
 
 // ===== 应用内引导（设置页）：快捷配置 + 手动模板两步 =====
 const SETTINGS_TOUR = [

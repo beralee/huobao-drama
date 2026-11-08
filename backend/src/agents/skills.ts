@@ -13,6 +13,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { Workspace, LocalFilesystem } from '@mastra/core/workspace'
+import type { WorkflowProfile } from '../services/workflow-profile.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -62,6 +63,25 @@ export const skillWorkspaces: Record<string, Workspace> = Object.fromEntries(
     }),
   ]),
 )
+
+const enhancedPrefix = (type: string) => `drama-enhanced/${type.replace(/_/g, '-')}`
+export const enhancedSkillWorkspaces: Record<string, Workspace> = Object.fromEntries(
+  Object.keys(AGENT_SKILL_MAP).map(type => [type, new Workspace({
+    id: `drama-enhanced-${type}`,
+    name: `Drama Skills ${type}`,
+    filesystem: localFilesystem(),
+    skills: () => scanSkillPaths().filter(p => p === `skills/${enhancedPrefix(type)}` || p.startsWith(`skills/${enhancedPrefix(type)}/`)),
+  })]),
+)
+
+export function getSkillWorkspace(type: string, profile: WorkflowProfile) {
+  return (profile === 'drama-enhanced' ? enhancedSkillWorkspaces : skillWorkspaces)[type]
+}
+
+export function getAgentSkillPaths(type: string, profile: WorkflowProfile): string[] {
+  const prefixes = profile === 'drama-enhanced' ? [enhancedPrefix(type)] : (AGENT_SKILL_MAP[type] || [])
+  return scanSkillPaths().map(p => p.replace(/^skills\//, '')).filter(p => prefixes.some(prefix => p === prefix || p.startsWith(prefix + '/')))
+}
 
 /** 递归扫描 workspace/skills/ 下所有含 SKILL.md 的目录（相对 workspace 根的路径） */
 function scanSkillPaths(): string[] {
@@ -118,14 +138,13 @@ async function readLocalizedSkill(relPath: string, lang: string): Promise<string
  *  AGENT_SKILL_MAP 的目录按前缀匹配：目录自身及其子目录下所有 SKILL.md 都会注入，
  *  因此设置页新建的子技能（如 storyboard-breaker/xxx）无需改代码即可生效。
  *  lang 非 zh 时逐技能优先 SKILL.<lang>.md，缺失回退基础版（中文） */
-export async function loadAgentSkills(agentType: string, lang?: string | null): Promise<string> {
-  const workspace = skillWorkspaces[agentType]
-  const prefixes = AGENT_SKILL_MAP[agentType] || []
-  if (!workspace || !prefixes.length) return ''
-
-  const allPaths = scanSkillPaths().map(p => p.replace(/^skills\//, ''))
-  const relPaths = allPaths.filter(p =>
-    prefixes.some(prefix => p === prefix || p.startsWith(prefix + '/')))
+export async function loadAgentSkills(agentType: string, lang?: string | null, profile: WorkflowProfile = 'builtin'): Promise<string> {
+  const workspace = getSkillWorkspace(agentType, profile)
+  if (!workspace) return ''
+  const relPaths = getAgentSkillPaths(agentType, profile)
+  if (profile === 'drama-enhanced' && !relPaths.includes(enhancedPrefix(agentType))) {
+    throw new Error('Drama Skills 适配技能缺失，请恢复技能文件或切换火宝内置方案')
+  }
 
   const useLocalized = Boolean(lang && lang !== 'zh')
   const contents: string[] = []
@@ -157,7 +176,7 @@ export async function loadAgentSkills(agentType: string, lang?: string | null): 
  */
 export async function refreshSkillWorkspaces(): Promise<void> {
   await Promise.all(
-    [...Object.values(skillWorkspaces), skillsManagerWorkspace]
+    [...Object.values(skillWorkspaces), ...Object.values(enhancedSkillWorkspaces), skillsManagerWorkspace]
       .map(async workspace => {
         await workspace.skills?.maybeRefresh()
         await workspace.skills?.refresh()

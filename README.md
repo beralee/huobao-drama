@@ -10,6 +10,8 @@
 
 新增逐镜审片：通过/待审/退回、原因、预览与小数秒入出点。换掉视频会使旧审片失效；后端导出会阻止未经通过的镜头，按审片区间同步裁切画面和原音轨，统一画幅和帧率，保留完整构图，不自动裁脸。无音轨片段补静音；导出任务一次执行一个。
 
+新增 **Drama Skills 增强创作方案**（默认），将剧作、视觉设定、导演分镜和图片/视频提示词规则接入现有 4 个 Agent。可在「设置 → Agent 配置」切回火宝内置方案，查看生效指令及编辑对应 Skills。审片页增加人工检查提示。[完整对比、接入范围与验证边界](docs/DRAMA_SKILLS_COMPARISON.md)。
+
 ## 启动
 
 需要 Node.js 22。首次在仓库根目录运行：
@@ -42,6 +44,7 @@ npm.cmd run import:haomen
 ```powershell
 npm.cmd run check:backend
 npm.cmd run test:review
+npm.cmd run test:workflow
 npm.cmd run build:frontend
 ```
 
@@ -50,3 +53,5 @@ npm.cmd run build:frontend
 ## 来源与许可证
 
 原作：ChatFire / chatfire-AI，火宝短剧。保留原 [LICENSE](LICENSE)，本派生版同样遵循 **CC BY-NC-SA 4.0**，并非无条件商用许可。[原始 README](docs/UPSTREAM_README.md) 仅作为来源记录，其中旧版启动和更新步骤不适用于本分支。
+
+创作规则另包含 [zenstory-ai/drama-skills](https://github.com/zenstory-ai/drama-skills) 0.11.2 的选定技能与适配内容，固定提交 `3d813c3`；保留其 [MIT 许可](backend/workspace/drama-skills/LICENSE) 与 [来源清单](backend/workspace/drama-skills/manifest.json)。

@@ -10,6 +10,7 @@
     "build:frontend": "npm run generate --prefix frontend",
     "check:backend": "npm run typecheck --prefix backend",
     "test:review": "npm run test:review --prefix backend",
+    "test:workflow": "npm run test:workflow --prefix backend",
     "import:haomen": "npm run import:haomen --prefix backend"
   }
 }

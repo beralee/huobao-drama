@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { db, schema } from '../../db/index.js'
 import { eq } from 'drizzle-orm'
 import { now } from '../../utils/response.js'
-import { getEpisodeId } from '../context.js'
+import { getEpisodeId, getWorkflowProfileFromRC } from '../context.js'
 
 const readEpisodeScript = createTool({
   id: 'read_episode_script',
@@ -19,9 +19,10 @@ const readEpisodeScript = createTool({
     const [ep] = await db.select().from(schema.episodes)
       .where(eq(schema.episodes.id, episodeId))
     if (!ep) return { error: `Episode not found (id=${episodeId})` }
-    const content = ep.content || ep.scriptContent
+    const content = getWorkflowProfileFromRC(context?.requestContext) === 'drama-enhanced'
+      ? (ep.scriptContent || ep.content) : (ep.content || ep.scriptContent)
     if (!content) return { error: `Episode has no content (id=${episodeId})` }
-    return { content, word_count: content.length, episode_id: episodeId }
+    return { content, original_content: ep.content, word_count: content.length, episode_id: episodeId }
   },
 })
 
@@ -37,7 +38,8 @@ const rewriteToScreenplay = createTool({
     const [ep] = await db.select().from(schema.episodes)
       .where(eq(schema.episodes.id, episodeId))
     if (!ep) return { error: `Episode not found` }
-    const source = ep.content || ep.scriptContent
+    const enhanced = getWorkflowProfileFromRC(context?.requestContext) === 'drama-enhanced'
+    const source = enhanced ? (ep.scriptContent || ep.content) : (ep.content || ep.scriptContent)
     if (!source) return { error: `Episode has no content to rewrite` }
 
     return {
@@ -48,7 +50,7 @@ const rewriteToScreenplay = createTool({
 - 场景头：## S编号 | 内景/外景 · 地点 | 时间段
 - 动作描写：自然段落，不包含镜头语言
 - 对白：角色名：（状态/表情）台词内容
-- 每个场景 30-60 秒内容
+${enhanced ? '- 场景时长由动作、完整对白和停顿决定，遵守用户指定范围。' : '- 每个场景 30-60 秒内容'}
 
 ${instructions || ''}
 

@@ -14,7 +14,9 @@ import { scriptTools } from './tools/script-tools.js'
 import { extractTools } from './tools/extract-tools.js'
 import { storyboardTools } from './tools/storyboard-tools.js'
 import { imagePromptTools } from './tools/image-prompt-tools.js'
-import { loadAgentSkills, skillWorkspaces } from './skills.js'
+import { loadAgentSkills, getSkillWorkspace } from './skills.js'
+import { getWorkflowProfileFromRC } from './context.js'
+import { DRAMA_EXECUTION_CONTRACT } from './drama-contract.js'
 import { loadAgentPromptFile, loadBasePromptFile } from './prompts.js'
 import { buildLanguageDirective } from './language.js'
 import { getContentLanguageFromRC } from './context.js'
@@ -349,13 +351,14 @@ const AGENT_TOOLS: Record<string, Record<string, any>> = {
 
 /** instructions 按请求解析：prompt 文件（或默认）+ 技能全文拼接 + 目标语言指令块
  *  prompt/skill 文本随内容语言切换语言变体（<type>.<lang>.md / SKILL.<lang>.md），缺失回退中文版 */
-function buildInstructions(type: string) {
-  return async ({ requestContext }: { requestContext?: RequestContext }) => {
+export function buildInstructions(type: string) {
+  return async ({ requestContext }: { requestContext?: RequestContext<any> }) => {
     const defaults = DEFAULT_PROMPTS[type]
     const lang = getContentLanguageFromRC(requestContext)
-    const promptFile = await loadAgentPromptFile(type, lang)
-    const baseInstructions = promptFile?.instructions || defaults.instructions
-    const skillInstructions = await loadAgentSkills(type, lang)
+    const profile = getWorkflowProfileFromRC(requestContext)
+    const promptFile = profile === 'builtin' ? await loadAgentPromptFile(type, lang) : null
+    const baseInstructions = profile === 'drama-enhanced' ? DRAMA_EXECUTION_CONTRACT : (promptFile?.instructions || defaults.instructions)
+    const skillInstructions = await loadAgentSkills(type, lang, profile)
     const languageDirective = buildLanguageDirective(lang)
     const voiceInstructions = getVoiceReferenceInstructions(type, lang)
     return [baseInstructions, skillInstructions, voiceInstructions, languageDirective]
@@ -385,7 +388,7 @@ export const agentRegistry: Record<string, Agent> = Object.fromEntries(
       instructions: buildInstructions(type),
       model: buildModel(type),
       tools: AGENT_TOOLS[type],
-      workspace: skillWorkspaces[type],
+      workspace: ({ requestContext }) => getSkillWorkspace(type, getWorkflowProfileFromRC(requestContext)),
       skillsFormat: 'markdown',
     }),
   ]),

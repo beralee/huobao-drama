@@ -11,6 +11,7 @@ import { now } from '../../utils/response.js'
 import { logTaskProgress, logTaskSuccess } from '../../utils/task-logger.js'
 import { getDramaId, getEpisodeId } from '../context.js'
 import { resolveVoiceMentions } from '../../services/character-voice-references.js'
+import { getDramaStylePrompt } from '../../services/style-preset.js'
 
 async function validateVideoPromptVoices(prompt: string | undefined, dramaId: number, characterIds: number[] = []) {
   if (!prompt?.includes('#')) return
@@ -205,6 +206,13 @@ const readStoryboardContext = createTool({
             .map(c => ({ character_id: c.id, name: c.name, voice_reference: c.voice_reference })),
           prop_ids: sbPropLinks.map(link => link.propId),
           shot_type: sb.shotType || '',
+          angle: sb.angle || '',
+          movement: sb.movement || '',
+          result: sb.result || '',
+          image_prompt: sb.imagePrompt || '',
+          first_frame_image: sb.firstFrameImage || '',
+          last_frame_image: sb.lastFrameImage || '',
+          reference_images: sb.referenceImages || '',
           duration: sb.duration || 0,
           description: sb.description || '',
           atmosphere: sb.atmosphere || '',
@@ -213,6 +221,7 @@ const readStoryboardContext = createTool({
       }))
 
     const payload = {
+      project_style: await getDramaStylePrompt(dramaId),
       episode: {
         id: ep.id,
         title: ep.title,

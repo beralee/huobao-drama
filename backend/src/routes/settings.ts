@@ -4,8 +4,16 @@
 import { Hono } from 'hono'
 import { getContentLanguage, setContentLanguage, getToursSeen, setToursSeen, CONTENT_LANGUAGES, type ContentLanguage } from '../services/app-settings.js'
 import { success, badRequest } from '../utils/response.js'
+import { getWorkflowProfile, setWorkflowProfile, isWorkflowProfile, DRAMA_SKILLS_SOURCE } from '../services/workflow-profile.js'
 
 const app = new Hono()
+
+app.get('/workflow-profile', (c) => success(c, { profile: getWorkflowProfile(), source: DRAMA_SKILLS_SOURCE }))
+app.put('/workflow-profile', async (c) => {
+  const body = await c.req.json().catch(() => null)
+  if (!isWorkflowProfile(body?.profile)) return badRequest(c, '未知创作方案')
+  return success(c, { profile: setWorkflowProfile(body.profile), source: DRAMA_SKILLS_SOURCE })
+})
 
 // GET /content-language — 当前 AI 内容语言
 app.get('/content-language', async (c) => {

@@ -2,7 +2,9 @@
  * Agent 聊天路由 — 非流式版本
  */
 import { Hono } from 'hono'
-import { validAgentTypes } from '../agents/index.js'
+import { validAgentTypes, buildInstructions } from '../agents/index.js'
+import { getAgentSkillPaths } from '../agents/skills.js'
+import { getWorkflowProfile, isWorkflowProfile, DRAMA_SKILLS_SOURCE } from '../services/workflow-profile.js'
 import { buildAgentRequestContext } from '../agents/context.js'
 import { mastra } from '../mastra/index.js'
 import { success, badRequest } from '../utils/response.js'
@@ -111,7 +113,15 @@ app.post('/:type/chat', async (c) => {
 app.get('/:type/debug', async (c) => {
   const agentType = c.req.param('type')
   if (!validAgentTypes.includes(agentType)) return badRequest(c, '无效的 Agent 类型')
-  return success(c, { agent_type: agentType, valid: true })
+  const requested = c.req.query('profile')
+  if (requested && !isWorkflowProfile(requested)) return badRequest(c, '未知创作方案')
+  const profile = isWorkflowProfile(requested) ? requested : getWorkflowProfile()
+  const requestContext = buildAgentRequestContext({ episodeId: 0, dramaId: 0, workflowProfile: profile })
+  return success(c, {
+    agent_type: agentType, profile, source: profile === 'drama-enhanced' ? DRAMA_SKILLS_SOURCE : null,
+    skill_paths: getAgentSkillPaths(agentType, profile),
+    instructions: await buildInstructions(agentType)({ requestContext }),
+  })
 })
 
 export default app

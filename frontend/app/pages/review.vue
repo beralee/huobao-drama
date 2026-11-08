@@ -24,6 +24,14 @@
       </main>
       <aside v-if="current" class="review-form">
         <h2>剪辑与审片</h2><p class="dim">源素材 {{ current.duration.toFixed(2) }} 秒；保留 {{ Math.max(0, draft.outPoint - draft.inPoint).toFixed(2) }} 秒</p>
+        <details class="craft-review"><summary>Drama Skills 审片提示</summary>
+          <ul><li>这一镜带来了什么信息或情绪变化？是否重复上一镜？</li>
+            <li>人物身份、服装、站位、视线、持物能否接上前后镜？</li>
+            <li>主要动作完成了吗？交接、接触、物件落点是否清楚？</li>
+            <li>说话人、口型和语气是否匹配？对白尾音和反应是否被切断？</li>
+            <li>有无形变、字幕污染、突然换景？入出点是否避开坏帧？</li></ul>
+          <p class="dim">这是人工检查提示，不是自动视觉评分。依据 Drama Skills 的 review / edit 方法适配。</p>
+        </details>
         <label>入点（秒）<input v-model.number="draft.inPoint" type="number" min="0" :max="current.duration" step="0.04" class="input" /></label>
         <button class="btn btn-sm" @click="draft.inPoint = time">用当前播放位置</button>
         <label>出点（秒）<input v-model.number="draft.outPoint" type="number" min="0" :max="current.duration" step="0.04" class="input" /></label>

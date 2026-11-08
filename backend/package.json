@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "backfill-artwork": "tsx scripts/backfill-artwork.ts",
     "test:review": "node --import tsx --test tests/shot-review.test.ts tests/review-export.test.ts",
+    "test:workflow": "node --import tsx --test tests/workflow-profile.test.ts",
     "import:haomen": "tsx scripts/import-haomen.ts"
   },
   "keywords": [],

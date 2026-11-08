@@ -4,7 +4,7 @@
  * 任务状态为进程内内存态：后端重启后运行中的任务状态丢失（Agent 调用本身已被中断）
  */
 import { mastra } from '../mastra/index.js'
-import { buildAgentRequestContext } from '../agents/context.js'
+import { buildAgentRequestContext, getWorkflowProfileFromRC } from '../agents/context.js'
 import { logTaskError, logTaskProgress, logTaskStart, logTaskSuccess } from '../utils/task-logger.js'
 
 export type ExtractTarget = 'characters' | 'scenes' | 'props'
@@ -45,7 +45,10 @@ export function startExtraction(episodeId: number, dramaId: number, target: Extr
       modelOverride: opts.model || undefined,
       textConfigId: opts.configId || undefined,
     })
-    return agent.generate([{ role: 'user', content: EXTRACT_MESSAGES[target] }], {
+    const message = target === 'props' && getWorkflowProfileFromRC(requestContext) === 'drama-enhanced'
+      ? '请先读取当前剧本与已有道具，提取推动剧情或需要跨镜保持一致的道具，按当前创作方案去重并用 save_dedup_props 保存；description 记录外观、状态及生效范围。本次只提取道具。'
+      : EXTRACT_MESSAGES[target]
+    return agent.generate([{ role: 'user', content: message }], {
       maxSteps: 20,
       requestContext,
       // 逐步打印 Agent 进展：调用了哪些工具、输出了什么

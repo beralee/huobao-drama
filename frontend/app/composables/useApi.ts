@@ -175,6 +175,9 @@ export const storageAPI = {
 }
 
 export const settingsAPI = {
+  workflowProfile: () => api.get('/settings/workflow-profile'),
+  setWorkflowProfile: (profile: string) => api.put('/settings/workflow-profile', { profile }),
+  agentInstructions: (type: string, profile: string) => api.get(`/agent/${type}/debug?profile=${encodeURIComponent(profile)}`),
   contentLanguage: () => api.get<{ language: string }>('/settings/content-language'),
   setContentLanguage: (language: string) => api.put('/settings/content-language', { language }),
 }
