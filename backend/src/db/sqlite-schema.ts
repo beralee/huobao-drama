@@ -306,6 +306,11 @@ export const sqliteSchemaStatements = [
  */
 export const stylePresetSeeds = [
   {
+    name: '写实短剧', value: 'realistic', sortOrder: 0,
+    prompt: 'live-action cinematic drama, natural human faces and skin texture, believable anatomy, motivated practical lighting, consistent actor identity and wardrobe, coherent room geography and eyelines, intentional camera framing, no captions, no watermark, avoid waxy skin and exaggerated facial expressions',
+    description: '真人影视质感，保持角色、服装、空间和光线连续',
+  },
+  {
     name: '3D 漫剧', value: '3d', sortOrder: 1,
     prompt: 'high-quality 3D CG animation still, modern game-engine cinematic render, Unreal Engine and Pixar grade quality, semi-realistic stylized characters with refined facial features, clean sculpted anatomy, detailed skin shader with subtle subsurface scattering, PBR materials with crisp detailed textures, volumetric cinematic lighting with soft rim light, rich depth of field, polished film color grading, detailed environment art, sharp focus, consistent character design across shots, avoid flat lighting, avoid plastic waxy skin, avoid low-poly blurry look, avoid 2D flat cel shading, avoid anime line art',
     description: '游戏引擎级 3D 渲染，半写实角色，当前短剧主流的 3D 漫剧质感',

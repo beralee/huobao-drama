@@ -22,7 +22,8 @@ import skills from './routes/skills.js'
 import props from './routes/props.js'
 import settings from './routes/settings.js'
 import storage from './routes/storage.js'
-import serverUpdate from './routes/serverUpdate.js'
+import review from './routes/review.js'
+
 import { requestLogger, errorHandler } from './middleware/logger.js'
 import { resumeInterruptedTasks } from './services/generation.js'
 import { DATA_ROOT } from './utils/paths.js'
@@ -65,8 +66,9 @@ api.route('/merge', merge)
 api.route('/skills', skills)
 api.route('/props', props)
 api.route('/storage', storage)
+api.route('/review', review)
 api.route('/settings', settings)
-api.route('/server-update', serverUpdate)
+
 
 app.route('/api/v1', api)
 
@@ -84,8 +86,8 @@ app.use('*', serveStatic({ root: distPath }))
 app.get('*', serveStatic({ root: distPath, path: 'index.html' }))
 
 const port = Number(process.env.PORT || 5679)
-console.log(`🚀 Huobao Drama TS server on http://localhost:${port}`)
+console.log(`映作短剧 server on http://localhost:${port}`)
 
 await resumeInterruptedTasks()
 
-serve({ fetch: app.fetch, port })
+serve({ fetch: app.fetch, port, hostname: process.env.HOST || '127.0.0.1' })

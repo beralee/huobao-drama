@@ -5,12 +5,11 @@
       <div class="header-left">
         <button class="brand" @click="navigateTo('/')">
           <div class="brand-mark">
-            <img v-if="showBrandImage" :src="brandLogo" alt="火宝短剧" class="brand-logo" @error="showBrandImage = false" />
-            <span v-else class="brand-fallback">火</span>
+            <span class="brand-fallback">映</span>
           </div>
           <div class="brand-text">
-            <span class="brand-name">火宝短剧</span>
-            <span class="brand-sub">Huobao Shorts</span>
+            <span class="brand-name">映作短剧</span>
+            <span class="brand-sub">个人创作工作台</span>
           </div>
         </button>
       </div>
@@ -32,18 +31,18 @@
           href="https://github.com/chatfire-AI/huobao-drama"
           target="_blank"
           rel="noopener"
-          aria-label="GitHub"
-          title="GitHub"
+          aria-label="上游项目：火宝短剧"
+          title="基于火宝短剧修改 · CC BY-NC-SA 4.0"
         >
           <Github :size="15" :stroke-width="1.8" />
         </a>
         <ThemeToggle />
-        <LocaleSwitcher />
+
       </div>
     </header>
 
     <!-- AI 服务未配置引导横幅(缺任一类型即提示) -->
-    <div v-if="missingConfigLabels.length" class="config-banner">
+    <div v-if="missingConfigLabels.length && route.path !== '/review'" class="config-banner">
       <TriangleAlert :size="14" :stroke-width="1.8" />
       <span>{{ t('layout.banner.missing', { types: missingConfigLabels.join(t('common.listJoin')) }) }}</span>
       <NuxtLink to="/settings" class="config-banner-link">{{ t('layout.banner.goSettings') }}</NuxtLink>
@@ -59,11 +58,11 @@
 import { LayoutGrid, Settings, TriangleAlert, Github } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { aiConfigAPI } from '~/composables/useApi'
-import brandLogo from '~/assets/brand-logo.png'
+
 
 const { t, locale } = useI18n()
 const route = useRoute()
-const showBrandImage = ref(true)
+
 
 // 渲染时求值，语言切换即时生效（不能模块级常量固化）
 const SERVICE_TYPE_LABELS = computed(() => ({

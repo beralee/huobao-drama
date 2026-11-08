@@ -58,3 +58,9 @@ desktop/build/
 desktop/dist/
 desktop/release/
 desktop/resources/
+
+# Local studio media, runtime state, and validation artifacts
+data/*
+!data/.gitkeep
+frontend/.nuxt/
+frontend/.output/

@@ -1,13 +1,15 @@
 {
-  "name": "huobao-drama",
-  "version": "1.0.0",
+  "name": "yingzuo-studio",
+  "version": "0.1.0",
   "private": true,
-  "description": "火宝短剧 — AI 短剧制作工具（桌面版编排入口）",
+  "description": "中文个人短剧工作台，基于火宝短剧",
   "scripts": {
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "dev:desktop": "cd desktop && npm run dev",
-    "build:frontend": "cd frontend && npm run generate",
-    "dist": "cd desktop && npm run dist"
+    "start": "node scripts/start-studio.mjs",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build:frontend": "npm run generate --prefix frontend",
+    "check:backend": "npm run typecheck --prefix backend",
+    "test:review": "npm run test:review --prefix backend",
+    "import:haomen": "npm run import:haomen --prefix backend"
   }
 }

@@ -19,32 +19,6 @@
             <h2 class="settings-title">{{ t('settings.general.title') }}</h2>
             <p class="settings-desc">{{ t('settings.general.desc') }}</p>
           </div>
-          <section class="card svc-group">
-            <div class="svc-group-head">
-              <div class="svc-group-heading">
-                <span class="svc-group-title">{{ t('settings.general.contentLanguage') }}</span>
-                <div class="svc-group-sub">{{ t('settings.general.contentLanguageSub') }}</div>
-              </div>
-            </div>
-            <div class="config-row">
-              <div class="provider-badge" style="background:var(--accent-bg);color:var(--accent)"><Languages :size="15" /></div>
-              <div class="config-main">
-                <div class="config-line"><span class="config-name">{{ t('settings.general.languageLabel') }}</span></div>
-                <div class="config-sub">{{ t('settings.general.languageNote') }}</div>
-              </div>
-              <div class="lang-picker">
-                <button
-                  v-for="l in contentLangOptions"
-                  :key="l.value"
-                  type="button"
-                  :class="['lang-option', { on: contentLanguage === l.value }]"
-                  @click="setContentLanguage(l.value)"
-                >{{ l.label }}</button>
-              </div>
-            </div>
-            <p class="config-empty">{{ t('settings.general.languageHint') }}</p>
-          </section>
-
           <!-- 外观主题 -->
           <section class="card svc-group">
             <div class="svc-group-head">
@@ -78,53 +52,6 @@
             <h2 class="settings-title">{{ t('settings.ai.title') }}</h2>
             <p class="settings-desc">{{ t('settings.ai.desc') }}</p>
           </div>
-          <section class="card quick-card">
-            <div class="quick-card-head">
-              <div class="setup-title">{{ t('settings.ai.quickTitle') }}</div>
-              <span class="tag tag-accent">{{ t('settings.ai.recommended') }}</span>
-            </div>
-            <p class="setup-desc">
-              {{ t('settings.ai.quickDesc') }}
-              <a class="huobao-site-link" :href="huobaoSiteUrl" target="_blank" rel="noopener noreferrer">
-                {{ t('settings.ai.getKey') }}
-                <ExternalLink :size="12" :stroke-width="1.8" />
-              </a>
-            </p>
-            <div class="huobao-quick-row">
-              <input v-model="huobaoApiKey" class="input" type="password" placeholder="Huobao API Key" />
-              <div class="lang-picker">
-                <button
-                  type="button"
-                  :class="['lang-option', { on: huobaoRegion === 'cn' }]"
-                  @click="huobaoRegion = 'cn'"
-                >{{ t('settings.ai.regionCn') }}</button>
-                <button
-                  type="button"
-                  :class="['lang-option', { on: huobaoRegion === 'com' }]"
-                  @click="huobaoRegion = 'com'"
-                >{{ t('settings.ai.regionCom') }}</button>
-              </div>
-              <button class="btn btn-primary" :disabled="huobaoSaving" @click="applyHuobaoQuickConfig">
-                <Loader2 v-if="huobaoSaving" :size="13" class="animate-spin" />
-                <Sparkles v-else :size="13" />
-                {{ t('settings.ai.applyQuick') }}
-              </button>
-            </div>
-            <div class="huobao-quick-models">
-              <div v-for="q in huobaoQuickConfigs" :key="q.name" class="hqm-row">
-                <span class="hqm-label">{{ serviceMeta[q.service_type].label }}</span>
-                <span class="hqm-provider">
-                  <img v-if="providerIconUrl(q.provider)" :src="providerIconUrl(q.provider)" class="hqm-provider-icon" alt="" />
-                  {{ q.provider }}
-                </span>
-                <span class="hqm-models mono">
-                  <span v-for="(m, i) in q.model" :key="m" :class="['hqm-model', { 'is-default': i === 0 }]">
-                    {{ m }}<em v-if="i === 0">{{ t('common.default') }}</em>
-                  </span>
-                </span>
-              </div>
-            </div>
-          </section>
           <section class="card setup-panel">
             <div class="setup-panel-head compact">
               <div>
@@ -238,9 +165,6 @@
                 <span class="svc-group-title">{{ t('settings.storage.currentDir') }}</span>
                 <div v-if="storageInfo?.computedAt" class="svc-group-sub">{{ t('settings.storage.computedAt', { time: new Date(storageInfo.computedAt).toLocaleString() }) }}</div>
               </div>
-              <button v-if="isDesktopMode" class="btn btn-primary btn-sm ml-auto" :disabled="migrating" @click="pickTarget">
-                <HardDrive :size="13" /> {{ t('settings.storage.changeLocation') }}
-              </button>
             </div>
             <div class="config-row">
               <div class="provider-badge style-badge"><HardDrive :size="15" /></div>
@@ -270,82 +194,17 @@
               </div>
             </div>
             <p class="config-empty">{{ t('settings.storage.note') }}</p>
-            <p v-if="!isDesktopMode" class="config-empty">{{ t('settings.storage.serverNote') }}</p>
           </section>
         </div>
 
-        <!-- ===== 关于更新 ===== -->
         <div v-else-if="tab === 'about'" class="settings-scroll">
-          <div class="settings-head">
-            <h2 class="settings-title">{{ t('settings.about.title') }}</h2>
-            <p class="settings-desc">{{ t('settings.about.desc') }}</p>
-          </div>
-          <section class="card svc-group">
-            <div class="svc-group-head">
-              <div class="svc-group-heading">
-                <span class="svc-group-title">{{ t('settings.about.currentVersion', { v: updateState?.currentVersion || '…' }) }}</span>
-                <div v-if="updateState?.latestVersion" class="svc-group-sub">{{ t('settings.about.latestVersion', { v: updateState.latestVersion }) }}</div>
-              </div>
-              <button class="btn btn-primary btn-sm ml-auto" :disabled="updateChecking" @click="checkUpdate">
-                <Loader2 v-if="updateChecking" :size="13" class="animate-spin" />
-                <RefreshCw v-else :size="13" />
-                {{ t('settings.about.check') }}
-              </button>
-            </div>
-
-            <div v-if="updateState?.status === 'up-to-date'" class="config-row">
-              <div class="provider-badge style-badge"><Check :size="15" /></div>
-              <div class="config-main"><div class="config-line"><span class="config-name">{{ t('settings.about.upToDate') }}</span></div></div>
-            </div>
-            <div v-else-if="updateState?.status === 'available' || updateState?.status === 'downloading'" class="config-row">
-              <div class="provider-badge style-badge"><Sparkles :size="15" /></div>
-              <div class="config-main">
-                <div class="config-line"><span class="config-name">{{ t('settings.about.found', { v: updateState.latestVersion }) }}</span></div>
-                <div v-if="updateState.notes" class="config-sub">{{ updateState.notes }}</div>
-                <div v-if="updateState.status === 'downloading' || updateDownloading" class="update-bar">
-                  <div class="update-bar-fill" :style="{ width: `${updateProgress}%` }"></div>
-                </div>
-                <!-- 服务器手动模式：无 Watchtower，给出更新命令 -->
-                <div v-if="!desktopBridge && serverUpdateMode === 'manual'" class="config-sub">
-                  {{ t('settings.about.serverManualHint') }} <span class="mono">docker compose pull && docker compose up -d</span>
-                </div>
-              </div>
-              <!-- 桌面版：下载更新包 -->
-              <button v-if="desktopBridge" class="btn btn-primary btn-sm" :disabled="updateDownloading" @click="downloadUpdate">
-                <Loader2 v-if="updateDownloading" :size="13" class="animate-spin" />
-                <Download v-else :size="13" />
-                {{ updateDownloading ? t('settings.about.downloading', { p: updateProgress }) : t('settings.about.download') }}
-              </button>
-              <!-- 服务器 + Watchtower：一键触发拉镜像重建 -->
-              <button v-else-if="serverUpdateMode === 'watchtower'" class="btn btn-primary btn-sm" :disabled="updateApplying" @click="applyUpdate">
-                <Loader2 v-if="updateApplying" :size="13" class="animate-spin" />
-                <Download v-else :size="13" />
-                {{ t('settings.about.serverApply') }}
-              </button>
-            </div>
-            <div v-else-if="updateState?.status === 'downloaded'" class="config-row">
-              <div class="provider-badge style-badge"><Download :size="15" /></div>
-              <div class="config-main">
-                <div class="config-line"><span class="config-name">{{ t('settings.about.ready') }}</span></div>
-                <div class="config-sub">{{ t('settings.about.readyDesc') }}</div>
-              </div>
-              <button class="btn btn-primary btn-sm" :disabled="updateApplying" @click="applyUpdate">
-                <Loader2 v-if="updateApplying" :size="13" class="animate-spin" />
-                {{ t('settings.about.restartInstall') }}
-              </button>
-            </div>
-            <div v-else-if="updateState?.status === 'error'" class="config-row">
-              <div class="provider-badge style-badge"><RefreshCw :size="15" /></div>
-              <div class="config-main">
-                <div class="config-line"><span class="config-name">{{ t('settings.about.checkFailed') }}</span></div>
-                <div class="config-sub">{{ updateState.error }}</div>
-              </div>
-              <button class="btn btn-ghost btn-sm" @click="checkUpdate">{{ t('settings.about.retry') }}</button>
-            </div>
-            <p v-else class="config-empty">{{ t('settings.about.empty') }}</p>
-          </section>
-          <p v-if="desktopBridge" class="config-empty">{{ t('settings.about.note') }}</p>
-          <p v-else class="config-empty">{{ t('settings.about.serverNote') }}</p>
+          <div class="settings-head"><h2 class="settings-title">映作短剧 · 0.1.0</h2>
+            <p class="settings-desc">面向个人创作的中文短剧工作台。</p></div>
+          <section class="card svc-group"><div class="config-row"><div class="config-main">
+            <p>剧本 → 角色与场景 → 分镜 → 生成 → 审片 → 导出</p>
+            <p class="config-sub">基于 chatfire-AI/huobao-drama 修改，保留 CC BY-NC-SA 4.0 许可证及原作者署名。</p>
+            <a href="https://github.com/chatfire-AI/huobao-drama" target="_blank" rel="noopener noreferrer">查看上游项目</a>
+          </div></div></section>
         </div>
 
         <!-- ===== Agent 配置（左侧 tab 切换，Prompt 与 Skills 整合在同一 Agent 下） ===== -->
@@ -633,37 +492,6 @@
         </div>
       </form>
     </div>
-    <!-- 迁移确认（自建 dialog：ConfirmDialog 的删除语义/Enter 快捷键不合此处） -->
-    <div v-if="migrateDialog" class="overlay" @click.self="!migrating && (migrateDialog = false)">
-      <form class="dialog" @submit.prevent="startMigrate">
-        <div class="dialog-head"><span class="dialog-title">{{ t('settings.migrate.title') }}</span></div>
-        <div class="dialog-body">
-          <div class="field">
-            <span class="field-label">{{ t('settings.migrate.newDir') }}</span>
-            <div class="input mono" style="word-break: break-all">{{ migrateTarget }}</div>
-          </div>
-          <div class="field">
-            <span class="field-label">{{ t('settings.migrate.dataToMove') }}</span>
-            <div class="field-hint">
-              {{ t('settings.migrate.sizeNote', { size: formatBytes(storageInfo?.usage?.total || 0) }) }}<template v-if="migrateTargetFree != null">{{ t('settings.migrate.freeNote', { size: formatBytes(migrateTargetFree) }) }}</template>
-            </div>
-          </div>
-          <label class="field" style="display:flex; align-items:center; gap:8px; cursor:pointer">
-            <input v-model="migrateFiles" type="checkbox" :disabled="migrating" />
-            <span class="field-label" style="margin:0">{{ t('settings.migrate.moveFiles') }}</span>
-          </label>
-          <p v-if="!migrateFiles" class="field-hint migrate-warn">{{ t('settings.migrate.emptyWarn') }}</p>
-          <p class="field-hint">{{ t('settings.migrate.note') }}</p>
-        </div>
-        <div class="dialog-foot">
-          <button type="button" class="btn" :disabled="migrating" @click="migrateDialog = false">{{ t('common.cancel') }}</button>
-          <button type="submit" class="btn btn-primary" :disabled="migrating">
-            <Loader2 v-if="migrating" :size="12" class="animate-spin" />
-            {{ t('settings.migrate.start') }}
-          </button>
-        </div>
-      </form>
-    </div>
     <ConfirmDialog
       :open="!!styleToDelete"
       :title="t('settings.styleDelete.title')"
@@ -689,13 +517,13 @@ import BaseSelect from '~/components/BaseSelect.vue'
 import { toast } from 'vue-sonner'
 import { toastError } from '~/composables/useToast'
 import { useI18n } from 'vue-i18n'
-import { aiConfigAPI, promptAPI, skillsAPI, storageAPI, stylePresetAPI, settingsAPI, serverUpdateAPI } from '~/composables/useApi'
-import { useDesktopBridge } from '~/composables/useDesktopBridge'
-import { useMigrateState } from '~/composables/useMigrateState'
+import { aiConfigAPI, promptAPI, skillsAPI, storageAPI, stylePresetAPI, settingsAPI } from '~/composables/useApi'
+
+
 import { useTheme } from '~/composables/useTheme'
 import { providerIconUrl } from '~/composables/useProviderIcon'
 import { startTour, autoTour } from '~/composables/useTour'
-import { confirmUnifiedLanguage } from '~/composables/useUnifiedLanguage'
+
 
 const { t, locale } = useI18n()
 
@@ -707,7 +535,7 @@ const baseTabs = computed(() => [
   { id: 'styles', label: t('settings.tabs.styles'), icon: Palette },
   { id: 'agents', label: t('settings.tabs.agents'), icon: Bot },
   { id: 'storage', label: t('settings.tabs.storage'), icon: HardDrive },
-  { id: 'about', label: t('settings.tabs.about'), icon: RefreshCw },
+  { id: 'about', label: '关于映作', icon: FileText },
 ])
 
 // ===== AI Service Configs =====
@@ -716,11 +544,6 @@ const cfgDialog = ref(false)
 const cfgEditId = ref(null)
 const cfgTesting = ref(false)
 const cfgTestResult = ref(null)
-const huobaoApiKey = ref('')
-const huobaoSaving = ref(false)
-// 火宝节点选择：默认跟随界面语言（中文→国内 .cn，其他→国外 .com），一键配置与取 Key 链接共用
-const huobaoRegion = ref(locale.value?.startsWith('zh') ? 'cn' : 'com')
-const huobaoSiteUrl = computed(() => `https://api.firemux.${huobaoRegion.value}`)
 const cfgForm = reactive({ name: '', provider: '', api_key: '', base_url: '', models: [], service_type: 'text', priority: 0, temperature: '' })
 // 模型标签编辑器：首位即默认模型；输入框支持回车添加、逗号/换行批量粘贴
 const modelInput = ref('')
@@ -759,7 +582,7 @@ const serviceMeta = computed(() => ({
 const providerPresets = {
   text: {
     gemini: { label: 'Gemini 官方', baseUrl: 'https://generativelanguage.googleapis.com', models: ['gemini-3.8-flash', 'gemini-3.1-pro-preview', 'gemini-3-flash-preview'] },
-    openai: { label: 'OpenAI 官方', baseUrl: 'https://api.openai.com', models: ['deepseek-v4-pro', 'gpt-5.6-terra'] },
+    openai: { label: 'OpenAI 兼容接口', baseUrl: '', models: [] },
   },
   image: {
     gemini: { label: 'Gemini 官方', baseUrl: 'https://generativelanguage.googleapis.com', models: ['gemini-3-pro-image', 'gemini-3.1-flash-image'] },
@@ -771,19 +594,6 @@ const providerPresets = {
     minimax: { label: 'MiniMax H3 官方', baseUrl: 'https://api.minimaxi.com', models: ['MiniMax-H3'] },
   },
 }
-const huobaoQuickConfigs = computed(() => {
-  const base = huobaoSiteUrl.value
-  return [
-    { service_type: 'text', provider: 'gemini', name: '火宝文本服务 · Gemini', base_url: base, model: ['gemini-3.8-flash', 'gemini-3.1-pro-preview', 'gemini-3-flash-preview'], priority: 101 },
-    { service_type: 'text', provider: 'openai', name: '火宝文本服务 · OpenAI', base_url: base, model: ['deepseek-v4-pro', 'deepseek-v4-flash', 'gpt-5.6-terra'], priority: 100 },
-    { service_type: 'image', provider: 'openai', name: '火宝图片服务 · OpenAI', base_url: base, model: ['gpt-image-2'], priority: 99 },
-    { service_type: 'image', provider: 'gemini', name: '火宝图片服务 · Gemini', base_url: base, model: ['gemini-3-pro-image', 'gemini-3.1-flash-image'], priority: 97 },
-    { service_type: 'video', provider: 'aliyun', name: '火宝视频服务 · Wan 3.0', base_url: `${base}/qwen`, model: ['wan3.0-video', 'wan3.0-video-prime'], priority: 97 },
-    { service_type: 'video', provider: 'volcengine', name: '火宝视频服务 · Seedance', base_url: `${base}/volcengine`, model: ['doubao-seedance-2-0-mini-260615', 'doubao-seedance-2-0-fast-260128', 'doubao-seedance-2-0-260128'], priority: 96 },
-    { service_type: 'video', provider: 'minimax', name: '火宝视频服务 · MiniMax', base_url: `${base}/minimax`, model: ['MiniMax-H3'], priority: 98 },
-  ]
-})
-
 function byType(t) { return cfgs.value.filter(c => c.service_type === t) }
 function countActive(t) { return byType(t).filter(c => c.is_active).length }
 function fmtModel(m) { return Array.isArray(m) ? m.join(', ') : m || '—' }
@@ -837,26 +647,6 @@ async function setDefaultModel(type, c, m) {
 }
 async function toggleCfg(c) { await aiConfigAPI.update(c.id, { is_active: !c.is_active }); loadCfgs() }
 async function delCfg(id) { await aiConfigAPI.del(id); toast.success(t('index.deleted')); loadCfgs() }
-async function applyHuobaoQuickConfig() {
-  const apiKey = huobaoApiKey.value.trim()
-  if (!apiKey) { toast.warning(t('settings.ai.apiKeyRequired')); return }
-  huobaoSaving.value = true
-  try {
-    for (const preset of huobaoQuickConfigs.value) {
-      const payload = { ...preset, api_key: apiKey }
-      const existing = cfgs.value.find(c => c.name === preset.name || (c.service_type === preset.service_type && c.provider === preset.provider && c.base_url === preset.base_url))
-      if (existing) await aiConfigAPI.update(existing.id, payload)
-      else await aiConfigAPI.create(payload)
-    }
-    toast.success(t('settings.ai.quickApplied'))
-    huobaoApiKey.value = ''
-    await loadCfgs()
-  } catch (e) {
-    toastError(e)
-  } finally {
-    huobaoSaving.value = false
-  }
-}
 function startAddCfg(t) {
   cfgEditId.value = null
   cfgTestResult.value = null
@@ -1009,9 +799,9 @@ const selectedAgentIcon = computed(() => agentDefs.value.find(a => a.type === se
 const contentLanguage = ref('zh')
 const contentLangOptions = [
   { value: 'zh', label: '中文', shortLabel: '中文' },
-  { value: 'en', label: 'English', shortLabel: 'EN' },
-  { value: 'ja', label: '日本語', shortLabel: '日本語' },
-  { value: 'ko', label: '한국어', shortLabel: '한국어' },
+
+
+
 ]
 // ===== Agent 配置：prompt/skill 编辑的语言版本（只读跟随内容语言） =====
 const agentPromptFallback = ref(false)   // 当前语言无独立 prompt 文件，展示的是回退内容
@@ -1038,13 +828,8 @@ async function loadContentLanguage() {
   try {
     const lang = (await settingsAPI.contentLanguage())?.language || 'zh'
     contentLanguage.value = lang
-    editLang.value = lang  // Agent 编辑器默认跟随内容语言
+
   } catch { /* 保持默认 */ }
-}
-async function setContentLanguage(lang) {
-  if (contentLanguage.value === lang) return
-  // UI 语言 = AI 内容语言：确认弹窗 → 统一切换 → 刷新（顶栏 LocaleSwitcher 同一入口）
-  await confirmUnifiedLanguage(lang)
 }
 onMounted(loadContentLanguage)
 
@@ -1227,25 +1012,13 @@ onMounted(() => { loadCfgs(); loadAgents(); loadAllSkills(); loadAgentPrompt(sel
 
 // ===== 应用内引导（设置页）：快捷配置 + 手动模板两步 =====
 const SETTINGS_TOUR = [
-  { element: '.quick-card', titleKey: 'tour.settings.quick.title', descKey: 'tour.settings.quick.desc', popoverSide: 'bottom' },
   { element: '.nav-item:has(.lucide-cpu), .nav-item:nth-of-type(1)', titleKey: 'tour.settings.nav.title', descKey: 'tour.settings.nav.desc', popoverSide: 'right' },
 ]
 onMounted(() => setTimeout(() => autoTour('settings', SETTINGS_TOUR, t), 800))
 function replaySettingsTour() { startTour('settings', SETTINGS_TOUR, t) }
 
 // ===== 存储位置 =====
-const desktopBridge = useDesktopBridge()
-const { begin: beginMigrate, update: updateMigrate, end: endMigrate } = useMigrateState()
-
 const storageInfo = ref(null)
-const migrateDialog = ref(false)
-const migrateTarget = ref('')
-const migrateTargetFree = ref(null)
-const migrateFiles = ref(true)
-const migrating = ref(false)
-
-const isDesktopMode = computed(() => storageInfo.value?.mode === 'desktop' && !!desktopBridge)
-
 let usagePollTimer = null
 
 function stopUsagePoll() {
@@ -1273,34 +1046,6 @@ watch(tab, (active) => {
   else stopUsagePoll()
 })
 
-async function pickTarget() {
-  if (!desktopBridge) return
-  const res = await desktopBridge.pickDirectory()
-  if (res.canceled) return
-  if (!res.ok || !res.path) { toastError(res.error, { fallback: 'settings.migrate.pickFailed' }); return }
-  migrateTarget.value = res.path
-  migrateTargetFree.value = res.freeBytes ?? null
-  migrateFiles.value = true
-  migrateDialog.value = true
-}
-
-async function startMigrate() {
-  if (!desktopBridge || !migrateTarget.value) return
-  migrating.value = true
-  beginMigrate()
-  try {
-    await desktopBridge.startMigration({ targetDir: migrateTarget.value, migrateFiles: migrateFiles.value })
-    // 成功的完成提示与页面刷新由全局进度订阅（app.vue）处理
-  } catch (e) {
-    endMigrate()
-    toastError(e, { fallback: 'settings.migrate.failed' })
-  } finally {
-    migrating.value = false
-    migrateDialog.value = false
-    stopUsagePoll()
-  }
-}
-
 function formatBytes(n) {
   if (!Number.isFinite(n)) return '—'
   if (n >= 1024 ** 3) return `${(n / 1024 ** 3).toFixed(1)} GB`
@@ -1309,81 +1054,8 @@ function formatBytes(n) {
   return `${n} B`
 }
 
-// ===== 应用内更新（桌面版走 Electron 桥；服务器/Docker 走后端 server-update 路由） =====
-const updateState = ref(null)
-const updateChecking = ref(false)
-const updateDownloading = ref(false)
-const updateProgress = ref(0)
-const updateApplying = ref(false)
-const serverUpdateMode = ref('manual') // 'watchtower' | 'manual'，仅服务器模式有意义
-
-async function refreshUpdateState() {
-  try {
-    if (desktopBridge) {
-      updateState.value = await desktopBridge.getUpdateState()
-    } else {
-      const s = await serverUpdateAPI.state()
-      serverUpdateMode.value = s.updateMode || 'manual'
-      updateState.value = s
-    }
-  } catch { /* 静默 */ }
-}
-
-async function checkUpdate() {
-  updateChecking.value = true
-  try {
-    if (desktopBridge) {
-      updateState.value = await desktopBridge.checkUpdate()
-    } else {
-      const s = await serverUpdateAPI.check()
-      serverUpdateMode.value = s.updateMode || 'manual'
-      updateState.value = s
-    }
-    if (updateState.value?.status === 'up-to-date') toast.success(t('settings.about.upToDate'))
-  } catch (e) {
-    toastError(e, { fallback: 'settings.about.checkFailedToast' })
-    refreshUpdateState()
-  } finally { updateChecking.value = false }
-}
-
-async function downloadUpdate() {
-  if (!desktopBridge) return
-  updateDownloading.value = true
-  updateProgress.value = 0
-  const unProgress = desktopBridge.onUpdateProgress((p) => { updateProgress.value = p })
-  try {
-    updateState.value = await desktopBridge.downloadUpdate()
-    toast.success(t('settings.about.downloadDone'))
-  } catch (e) {
-    toastError(e, { fallback: 'settings.about.downloadFailed' })
-    refreshUpdateState()
-  } finally {
-    unProgress()
-    updateDownloading.value = false
-  }
-}
-
-async function applyUpdate() {
-  updateApplying.value = true
-  try {
-    if (desktopBridge) {
-      await desktopBridge.applyUpdate()
-      // 成功路径：应用退出并由更新后的版本接管，不会走到这里
-    } else {
-      await serverUpdateAPI.apply()
-      // Watchtower 异步拉镜像重建容器，本进程随后被替换
-      toast.success(t('settings.about.serverApplyStarted'), { duration: 8000 })
-      updateApplying.value = false
-    }
-  } catch (e) {
-    updateApplying.value = false
-    toastError(e, { fallback: desktopBridge ? 'settings.about.installFailed' : 'settings.about.serverApplyFailed' })
-    refreshUpdateState()  // 桌面端 apply 失败会把具体原因写进 updateState.error，刷新显示在错误行
-  }
-}
-
 watch(tab, (t) => {
-  if (t === 'about') refreshUpdateState()
+
   // 进入 Agent 页总是按当前内容语言重载（幂等）：兜住「先切语言、后进 Agent」的时序
   if (t === 'agents') {
     loadAgentPrompt(selectedAgent.value)

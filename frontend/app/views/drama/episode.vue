@@ -20,6 +20,7 @@
       </div>
 
       <div class="studio-topbar-side">
+        <NuxtLink v-if="epId" :to="`/review?episode=${epId}`" class="btn btn-primary btn-sm">逐镜审片</NuxtLink>
         <div class="studio-model-picks">
           <ModelSelect
             v-if="textModelOptions.length"
@@ -53,7 +54,7 @@
           />
         </div>
         <div class="studio-actions">
-          <LocaleSwitcher />
+
           <button class="btn btn-icon tour-help-btn" :title="t('tour.helpTitle')" @click="startTour('episode', EPISODE_TOUR, t)">
             <CircleHelp :size="14" :stroke-width="1.8" />
           </button>
@@ -1459,7 +1460,7 @@ import { startTour, autoTour } from '~/composables/useTour'
 import { useAgent } from '~/composables/useAgent'
 import { resolveTextModelSelection } from '~/utils/text-model-selection'
 import { toastError, mapError, MODERATION_RE } from '~/composables/useToast'
-import LocaleSwitcher from '~/components/LocaleSwitcher.vue'
+
 
 definePageMeta({ layout: 'studio' })
 

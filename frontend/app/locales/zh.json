@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "火宝短剧",
+    "title": "映作短剧",
     "updateAvailable": "发现新版本 v{version}，可在「设置 → 关于更新」中升级"
   },
   "characterVoice": {
@@ -264,7 +264,7 @@
     },
     "general": {
       "title": "通用",
-      "desc": "应用级通用设置。语言切换同时作用于界面与 AI 生成内容。",
+      "desc": "中文创作工作台的外观设置。",
       "contentLanguage": "AI 内容语言",
       "contentLanguageSub": "界面与 AI 产出（剧本/资产/分镜/提示词）统一使用的语言",
       "languageLabel": "语言",
@@ -287,14 +287,10 @@
     },
     "ai": {
       "title": "AI 服务配置",
-      "desc": "先用推荐模板快速落配置，再按服务类型微调。工作台创建集时会锁定所选图片和视频能力。",
-      "quickTitle": "火宝快捷配置",
+      "desc": "按需要配置自己的文本、图片与视频服务。",
       "recommended": "推荐",
-      "quickDesc": "输入 Huobao API Key，一次写入文本、图片、视频三条推荐配置。",
-      "getKey": "前往火宝获取 Key",
       "regionCn": "国内",
       "regionCom": "国外",
-      "applyQuick": "写入火宝配置",
       "manualTitle": "手动模板",
       "manualDesc": "选择服务类型后，直接用模板填充推荐的 `provider / base URL / model`。",
       "activeCount": "{n} 已启用",
@@ -305,7 +301,6 @@
       "noBaseUrl": "未设置 Base URL",
       "test": "测试",
       "apiKeyRequired": "请填写 Huobao API Key",
-      "quickApplied": "火宝快捷配置已写入",
       "defaultModelSwitched": "默认{type}模型已切换为 {model}",
       "meta": {
         "text": "剧本改写、角色场景提取、分镜拆解等 Agent 文本能力",
@@ -917,7 +912,7 @@
     "helpTitle": "使用引导",
     "index": {
       "welcome": {
-        "title": "👋 欢迎使用火宝短剧",
+        "title": "👋 欢迎使用映作短剧",
         "desc": "小说 → 剧本 → 资产 → 分镜 → 视频 → 成片，一站式 AI 短剧制作。先配置 AI 服务，再创建第一个项目。"
       },
       "create": {
