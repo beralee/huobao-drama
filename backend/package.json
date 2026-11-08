@@ -11,6 +11,7 @@
     "backfill-artwork": "tsx scripts/backfill-artwork.ts",
     "test:review": "node --import tsx --test tests/shot-review.test.ts tests/review-export.test.ts",
     "test:workflow": "node --import tsx --test tests/workflow-profile.test.ts",
+    "test:zenmux": "node --import tsx --test tests/zenmux-adapter.test.ts",
     "import:haomen": "tsx scripts/import-haomen.ts"
   },
   "keywords": [],
@@ -31,6 +32,7 @@
     "hono": "^4.12.9",
     "pino": "^10.3.1",
     "sharp": "^0.34.5",
+    "undici": "^6.21.3",
     "uuid": "^13.0.0",
     "zod": "^4.3.6"
   },

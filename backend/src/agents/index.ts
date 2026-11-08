@@ -195,6 +195,9 @@ function openaiThinkingOffPatch(): Record<string, any> {
 
 function createThinkingOffFetch(providerName: string, baseURL: string): typeof fetch | undefined {
   if (!thinkingOffEnabled || isOfficialTextHost(baseURL)) return undefined
+  // ZenMux routes multiple model families. Let its default reasoning policy
+  // apply instead of sending incompatible vendor-specific disable switches.
+  try { if (new URL(baseURL).hostname === 'zenmux.ai') return undefined } catch { /* handled by fetch */ }
   const openaiPatch = openaiThinkingOffPatch()
 
   return async (input: any, init?: any) => {

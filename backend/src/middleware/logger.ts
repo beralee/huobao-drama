@@ -34,7 +34,8 @@ export const requestLogger: MiddlewareHandler = async (c, next) => {
   let bodyInfo = ''
   // 上传文件不克隆/读取请求体：避免记录音频内容，也让路由的大小限制先执行。
   const isFileUpload = c.req.header('content-type')?.toLowerCase().startsWith('multipart/form-data')
-  if (!isFileUpload && ['POST', 'PUT', 'PATCH'].includes(method)) {
+  const isCredentialRequest = path.startsWith('/api/v1/ai-configs')
+  if (!isFileUpload && !isCredentialRequest && ['POST', 'PUT', 'PATCH'].includes(method)) {
     try {
       const clone = c.req.raw.clone()
       const text = await clone.text()

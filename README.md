@@ -27,6 +27,8 @@ npm.cmd start
 
 数据库和媒体在本仓库 `data/`，被 Git 忽略；不会复制 API Key 到仓库。
 
+已支持通过 ZenMux 的 OpenAI 兼容接口接入 Claude Sonnet 5.5 与 GPT Image 2.6 Sunburst。模型配置和凭据只在本机保存；[配置、密钥轮换与 Windows 代理说明](docs/ZENMUX_SETUP.md)。
+
 ## 导入豪门赘婿
 
 默认从同级 `../short-drama/haomen-zhuixu` 读取剧本与生成清单：
@@ -45,6 +47,7 @@ npm.cmd run import:haomen
 npm.cmd run check:backend
 npm.cmd run test:review
 npm.cmd run test:workflow
+npm.cmd run test:zenmux --prefix backend
 npm.cmd run build:frontend
 ```
 

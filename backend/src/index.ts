@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { configureNetwork } from './utils/network.js'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
@@ -32,6 +33,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(__dirname, '../..')
 
 const app = new Hono()
+configureNetwork()
 
 // Middleware
 app.use('*', cors({

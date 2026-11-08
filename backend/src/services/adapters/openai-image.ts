@@ -20,8 +20,11 @@ export class OpenAIImageAdapter implements ImageProviderAdapter {
 
   buildGenerateRequest(config: AIConfig, record: ImageGenerationRecord): ProviderRequest {
     const model = record.model || config.model || 'gpt-image-2'
-    const isGptImage = model.startsWith('gpt-image-')
-    const isGptImage2 = model === 'gpt-image-2'
+    // Routers such as ZenMux use provider-prefixed model IDs; keep the ID on
+    // the wire, but select GPT Image request semantics from its model name.
+    const modelName = model.split('/').at(-1) || model
+    const isGptImage = modelName.startsWith('gpt-image-')
+    const isGptImage2 = /^gpt-image-2(?:[.-]|$)/.test(modelName)
     const size = isGptImage2
       ? this.normalizeGptImage2Size(record.size)
       : isGptImage
